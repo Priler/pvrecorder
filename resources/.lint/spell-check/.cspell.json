@@ -36,6 +36,9 @@
     "**/package.json",
     "**/packages-lock.json",
     "**/tsconfig.json",
-    "**/tslint.json"
+    "**/tslint.json",
+
+    // rust
+    "**/Cargo.toml"
   ]
 }
