@@ -25,10 +25,11 @@ But that's all unofficial and based on my enthusiasm.
 
 ## Installation
 
-To add the pvrecorder library into your app, add `pv_recorder` to your app's `Cargo.toml` manifest:
+Because this fork is unnofficial, I don't think it would be a good idea to publish it on Crates, since I'm not a developer (although official versions was yanked bruh).  
+So in order to install it, you need to link it as a Git repository inside your `Cargo.toml` manifest:
 ```toml
 [dependencies]
-pv_recorder = "*"
+pv_recorder = { git = "https://github.com/Priler/pvrecorder" }
 ```
 
 ## Usage
@@ -65,3 +66,5 @@ To stop recording, call `stop()` on the instance:
 ```rust
 recorder.stop()?;
 ```
+
+Make sure to also check the source code inside `src/` and read thoroughly through documentation strings, as it can help you to understand how this crate works.
