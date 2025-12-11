@@ -17,25 +17,38 @@ const DEFAULT_RELATIVE_LIBRARY_DIR: &str = "lib/";
 fn find_machine_type() -> String {
     use std::process::Command;
 
-    let cpu_info = Command::new("cat")
-        .arg("/proc/cpuinfo")
-        .output()
-        .expect("Failed to retrieve cpu info");
-    let cpu_part_list = std::str::from_utf8(&cpu_info.stdout)
-        .unwrap()
-        .split("\n")
-        .filter(|x| x.contains("CPU part"))
-        .collect::<Vec<_>>();
+    // FIX: Changed from panic to graceful fallback with warning
+    let cpu_info = match Command::new("cat").arg("/proc/cpuinfo").output() {
+        Ok(output) => output,
+        Err(e) => {
+            eprintln!("WARNING: Failed to read /proc/cpuinfo: {}. Using fallback.", e);
+            return String::from("unsupported");
+        }
+    };
 
-    if cpu_part_list.len() == 0 {
-        panic!("Unsupported CPU");
+    let cpu_info_str = match std::str::from_utf8(&cpu_info.stdout) {
+        Ok(s) => s,
+        Err(_) => {
+            eprintln!("WARNING: /proc/cpuinfo contains invalid UTF-8. Using fallback.");
+            return String::from("unsupported");
+        }
+    };
+
+    let cpu_part_list: Vec<&str> = cpu_info_str
+        .lines()  // FIX: Use lines() instead of split("\n") for cross-platform compatibility
+        .filter(|x| x.contains("CPU part"))
+        .collect();
+
+    // FIX: Use is_empty() instead of len() == 0
+    if cpu_part_list.is_empty() {
+        eprintln!("WARNING: Could not find CPU part in /proc/cpuinfo. Using fallback.");
+        return String::from("unsupported");
     }
 
     let cpu_part = cpu_part_list[0]
-        .split(" ")
-        .collect::<Vec<_>>()
-        .pop()
-        .unwrap()
+        .split_whitespace()  // FIX: More robust than split(" ")
+        .last()
+        .unwrap_or("unknown")
         .to_lowercase();
 
     let machine = match cpu_part.as_str() {
@@ -84,19 +97,25 @@ fn base_library_path() -> PathBuf {
             if cfg!(target_arch = "aarch64") {
                 PathBuf::from(format!(
                     "raspberry-pi/{}-aarch64/libpv_recorder.so",
-                    &machine
+                    machine
                 ))
             } else {
-                PathBuf::from(format!("raspberry-pi/{}/libpv_recorder.so", &machine))
+                PathBuf::from(format!("raspberry-pi/{}/libpv_recorder.so", machine))
             }
         }
         _ => {
-            eprintln!("WARNING: Please be advised that this device is not officially supported by Picovoice.\nFalling back to the armv6-based (Raspberry Pi Zero) library. This is not tested nor optimal.\nFor the model, use Raspberry Pi's models");
+            eprintln!(
+                "WARNING: Device not officially supported by Picovoice. \
+                Falling back to the armv6-based (Raspberry Pi Zero) library. \
+                This is not tested nor optimal. For best results, use Raspberry Pi's models."
+            );
             PathBuf::from("raspberry-pi/arm11/libpv_recorder.so")
         }
     }
 }
 
+/// Returns the default path to the pvrecorder library for the current platform.
+#[must_use]
 pub fn pv_library_path() -> PathBuf {
     PathBuf::from(env!("OUT_DIR"))
         .join(DEFAULT_RELATIVE_LIBRARY_DIR)

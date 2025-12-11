@@ -1,12 +1,16 @@
-# PvRecorder Binding for Rust (reverted from original repo)
-
-## PvRecorder
+# PvRecorder Binding for Rust
 
 PvRecorder is an easy-to-use, cross-platform audio recorder designed for real-time speech audio processing. It allows developers access to an audio device's input stream, broken up into data frames of a given size.
 
+## This repo is unofficial
+Keep in mind this is reverted from original repo (commit [#142](https://github.com/Picovoice/pvrecorder/pull/142)).  
+The reason is to keep a good library to continue working on Rust.  
+I'll also try to continue the development of this binding (fix some bugs, etc).  
+But that's all unofficial and based on my enthusiasm.
+
 ## Requirements
 
-- Rust 1.54+
+- Rust 1.54+ (tested on 1.92)
 
 ## Compatibility
 
@@ -61,8 +65,3 @@ To stop recording, call `stop()` on the instance:
 ```rust
 recorder.stop()?;
 ```
-
-## Demo
-
-The [PvRecorder Rust demo](https://github.com/Picovoice/pvrecorder/tree/main/demo/rust) is a Rust command-line application that demonstrates how to
-use PvRecorder to record audio to a file.
